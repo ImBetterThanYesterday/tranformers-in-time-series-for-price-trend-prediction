@@ -1,0 +1,43 @@
+# ============================================================================
+# Docker Compose para TLOB
+# ============================================================================
+#
+# Uso:
+#   docker-compose up         # Construir y ejecutar
+#   docker-compose up -d      # Ejecutar en background
+#   docker-compose down       # Detener y eliminar contenedores
+#   docker-compose logs -f    # Ver logs en tiempo real
+#
+
+services:
+  tlob-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tlob-streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      # Montar directorio de datos (opcional, para desarrollo)
+      - ./data:/app/data:ro
+      # Montar código fuente (opcional, para desarrollo)
+      # - ./app.py:/app/app.py:ro
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - tlob-network
+
+networks:
+  tlob-network:
+    driver: bridge
+
+

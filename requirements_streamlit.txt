@@ -1,0 +1,25 @@
+# ============================================================================
+# Dependencias para la Aplicación Streamlit de TLOB
+# ============================================================================
+
+# Core ML
+torch==2.0.1
+pytorch-lightning==2.0.0
+numpy==1.24.0
+pandas==2.0.0
+scikit-learn==1.3.0
+
+# Transformers y utilidades
+einops==0.7.0
+omegaconf==2.3.0
+
+# Visualización
+streamlit==1.39.0
+plotly==5.24.0
+matplotlib==3.7.0
+
+# Utilidades
+requests==2.31.0
+tqdm==4.66.0
+
+
