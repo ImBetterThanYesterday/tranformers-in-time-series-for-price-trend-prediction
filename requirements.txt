@@ -19,6 +19,7 @@ transformers
 wandb
 kagglehub
 onnx
+openpyxl
 
 
 

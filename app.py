@@ -150,15 +150,31 @@ def plot_timeseries(data):
     return fig
 
 def plot_distributions(data):
-    """Distribuciones de features"""
-    fig, axes = plt.subplots(2, 5, figsize=(15, 6))
-    fig.suptitle("Distribución de Features (0-9)", fontweight='bold')
+    """Distribuciones de las 40 features"""
+    # 8 filas x 5 columnas = 40 features
+    fig, axes = plt.subplots(8, 5, figsize=(20, 24))
+    fig.suptitle("Distribución de las 40 Features del LOB", fontsize=16, fontweight='bold')
     
-    for i in range(10):
-        ax = axes[i // 5, i % 5]
-        ax.hist(data[:, i], bins=20, alpha=0.7, edgecolor='black', color='steelblue')
-        ax.set_title(f'F{i}', fontsize=10)
-        ax.set_xlabel('Valor')
+    for i in range(40):
+        row = i // 5
+        col = i % 5
+        ax = axes[row, col]
+        ax.hist(data[:, i], bins=15, alpha=0.7, edgecolor='black', color='steelblue')
+        
+        # Nombres más descriptivos
+        if i < 10:
+            label = f'F{i}: ASK Price L{i+1}'
+        elif i < 20:
+            label = f'F{i}: ASK Vol L{i-9}'
+        elif i < 30:
+            label = f'F{i}: BID Price L{i-19}'
+        else:
+            label = f'F{i}: BID Vol L{i-29}'
+        
+        ax.set_title(label, fontsize=9)
+        ax.set_xlabel('Valor', fontsize=8)
+        ax.set_ylabel('Frecuencia', fontsize=8)
+        ax.tick_params(labelsize=7)
         ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
@@ -311,13 +327,15 @@ def main():
         st.subheader("📈 Series Temporales")
         st.plotly_chart(plot_timeseries(data), use_container_width=True)
         
-        with st.expander("🔢 Datos Numéricos (10×10)"):
+        with st.expander("🔢 Datos Numéricos Completos (128×40)"):
+            # Mostrar TODOS los 128 timesteps y las 40 features
             df = pd.DataFrame(
-                data[:10, :10],
-                columns=[f"F{i}" for i in range(10)],
-                index=[f"T{i}" for i in range(10)]
+                data[:, :40],  # Todos los timesteps, todas las features
+                columns=[f"F{i}" for i in range(40)],
+                index=[f"T{i}" for i in range(128)]
             )
-            st.dataframe(df.style.format("{:.3f}"))
+            st.caption("📌 Matriz completa: 128 timesteps × 40 features")
+            st.dataframe(df.style.format("{:.3f}"), height=600)
     
     # TAB 2: Análisis
     with tab2:
@@ -326,12 +344,24 @@ def main():
         st.subheader("📊 Distribuciones")
         st.pyplot(plot_distributions(data))
         
-        st.subheader("📈 Estadísticas")
+        st.subheader("📈 Estadísticas de las 40 Features")
         stats = []
-        for i in range(min(20, data.shape[1])):
+        # Ahora mostramos todas las 40 features
+        for i in range(40):
             feat = data[:, i]
+            
+            # Nombres descriptivos para cada feature
+            if i < 10:
+                label = f'F{i}: ASK Price L{i+1}'
+            elif i < 20:
+                label = f'F{i}: ASK Vol L{i-9}'
+            elif i < 30:
+                label = f'F{i}: BID Price L{i-19}'
+            else:
+                label = f'F{i}: BID Vol L{i-29}'
+            
             stats.append({
-                'Feature': f'F{i}',
+                'Feature': label,
                 'Mean': feat.mean(),
                 'Std': feat.std(),
                 'Min': feat.min(),
@@ -345,7 +375,7 @@ def main():
             'Std': '{:.3f}',
             'Min': '{:.3f}',
             'Max': '{:.3f}'
-        }))
+        }), height=600)
     
     # TAB 3: Predicción
     with tab3:
