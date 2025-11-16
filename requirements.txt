@@ -25,6 +25,6 @@ openpyxl
 # Visualización
 streamlit==1.39.0
 plotly==5.24.0
-tqdm==4.66.0
+tqdm
 
 
