@@ -1,0 +1,103 @@
+{
+  "num_examples": 7,
+  "seq_size": 128,
+  "csv_source": "data/BTC/original_source/1-09-1-20.csv",
+  "total_csv_rows": 3730870,
+  "processing": {
+    "description": "Usa el MISMO reordenamiento y normalizaci\u00f3n que btc.py",
+    "reordering": "[timestamp, sell1, vsell1, buy1, vbuy1, ...]",
+    "normalization": "z_score_orderbook() - precios y vol\u00famenes por separado"
+  },
+  "normalization_stats": {
+    "mean_prices": 17182.6521875,
+    "std_prices": 1.4239408560566995,
+    "mean_size": 4.171510156249999,
+    "std_size": 9.590983896548032
+  },
+  "examples": [
+    {
+      "example_id": 1,
+      "start_row": 0,
+      "end_row": 128,
+      "timestamp_first": "2023-01-09 22:17:40",
+      "timestamp_last": "2023-01-09 22:18:12",
+      "date_first": "2023-01-09 22:17:40",
+      "raw_stats": {
+        "mean": 8593.411848828126,
+        "std": 8589.243074008078
+      }
+    },
+    {
+      "example_id": 2,
+      "start_row": 532963,
+      "end_row": 533091,
+      "timestamp_first": "2023-01-11 11:23:38",
+      "timestamp_last": "2023-01-11 11:24:09",
+      "date_first": "2023-01-11 11:23:38",
+      "raw_stats": {
+        "mean": 8715.385350390625,
+        "std": 8710.018482639918
+      }
+    },
+    {
+      "example_id": 3,
+      "start_row": 1065926,
+      "end_row": 1066054,
+      "timestamp_first": "2023-01-13 00:32:25",
+      "timestamp_last": "2023-01-13 00:32:57",
+      "date_first": "2023-01-13 00:32:25",
+      "raw_stats": {
+        "mean": 9405.970674609376,
+        "std": 9402.605725414227
+      }
+    },
+    {
+      "example_id": 4,
+      "start_row": 1598889,
+      "end_row": 1599017,
+      "timestamp_first": "2023-01-14 13:39:26",
+      "timestamp_last": "2023-01-14 13:39:58",
+      "date_first": "2023-01-14 13:39:26",
+      "raw_stats": {
+        "mean": 10454.739098046874,
+        "std": 10453.569190505563
+      }
+    },
+    {
+      "example_id": 5,
+      "start_row": 2131852,
+      "end_row": 2131980,
+      "timestamp_first": "2023-01-16 02:46:25",
+      "timestamp_last": "2023-01-16 02:46:57",
+      "date_first": "2023-01-16 02:46:25",
+      "raw_stats": {
+        "mean": 10614.612465039061,
+        "std": 10612.943270811284
+      }
+    },
+    {
+      "example_id": 6,
+      "start_row": 2664815,
+      "end_row": 2664943,
+      "timestamp_first": "2023-01-17 15:54:23",
+      "timestamp_last": "2023-01-17 15:54:55",
+      "date_first": "2023-01-17 15:54:23",
+      "raw_stats": {
+        "mean": 10572.642104296874,
+        "std": 10571.035782135014
+      }
+    },
+    {
+      "example_id": 7,
+      "start_row": 3197778,
+      "end_row": 3197906,
+      "timestamp_first": "2023-01-19 05:02:27",
+      "timestamp_last": "2023-01-19 05:02:59",
+      "date_first": "2023-01-19 05:02:27",
+      "raw_stats": {
+        "mean": 10410.380602148438,
+        "std": 10407.84178356078
+      }
+    }
+  ]
+}

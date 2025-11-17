@@ -1,0 +1,110 @@
+{
+  "num_examples": 7,
+  "seq_size": 128,
+  "csv_source": "data/BTC/original_source/1-09-1-20.csv",
+  "total_csv_rows": 3730870,
+  "data_format": "raw",
+  "note": "Datos sin procesar - requieren normalizaci\u00f3n y reordenamiento",
+  "original_columns": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41"
+  ],
+  "examples": [
+    {
+      "example_id": 1,
+      "start_row": 0,
+      "end_row": 128,
+      "timestamp_first": 1673302660926,
+      "timestamp_last": 1673302692743,
+      "date_first": "1970-01-20 08:48:22"
+    },
+    {
+      "example_id": 2,
+      "start_row": 532963,
+      "end_row": 533091,
+      "timestamp_first": 1673436218075,
+      "timestamp_last": 1673436249866,
+      "date_first": "1970-01-20 08:50:36"
+    },
+    {
+      "example_id": 3,
+      "start_row": 1065926,
+      "end_row": 1066054,
+      "timestamp_first": 1673569945917,
+      "timestamp_last": 1673569977722,
+      "date_first": "1970-01-20 08:52:49"
+    },
+    {
+      "example_id": 4,
+      "start_row": 1598889,
+      "end_row": 1599017,
+      "timestamp_first": 1673703566197,
+      "timestamp_last": 1673703598013,
+      "date_first": "1970-01-20 08:55:03"
+    },
+    {
+      "example_id": 5,
+      "start_row": 2131852,
+      "end_row": 2131980,
+      "timestamp_first": 1673837185335,
+      "timestamp_last": 1673837217147,
+      "date_first": "1970-01-20 08:57:17"
+    },
+    {
+      "example_id": 6,
+      "start_row": 2664815,
+      "end_row": 2664943,
+      "timestamp_first": 1673970863254,
+      "timestamp_last": 1673970895131,
+      "date_first": "1970-01-20 08:59:30"
+    },
+    {
+      "example_id": 7,
+      "start_row": 3197778,
+      "end_row": 3197906,
+      "timestamp_first": 1674104547342,
+      "timestamp_last": 1674104579155,
+      "date_first": "1970-01-20 09:01:44"
+    }
+  ]
+}
