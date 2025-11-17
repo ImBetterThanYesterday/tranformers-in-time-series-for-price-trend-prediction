@@ -16,7 +16,7 @@ import sys
 
 # Importar modelo
 sys.path.append('.')
-from models.tlob import TLOB
+from src.models.tlob import TLOB
 
 # Configuración
 st.set_page_config(
@@ -28,8 +28,8 @@ st.set_page_config(
 
 # Constantes
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-EXAMPLES_DIR = Path("data/BTC/individual_examples")
-CHECKPOINT_PATH = "data/checkpoints/TLOB/BTC_seq_size_128_horizon_10_seed_1/pt/val_loss=0.623_epoch=2.pt"
+EXAMPLES_DIR = Path("src/data/BTC/individual_examples")
+CHECKPOINT_PATH = "src/data/checkpoints/TLOB/BTC_seq_size_128_horizon_10_seed_42/pt/val_loss=0.624_epoch=2.pt"
 
 # Mapeo de clases
 CLASSES = {0: "DOWN 📉", 1: "STATIONARY ➡️", 2: "UP 📈"}
@@ -44,6 +44,28 @@ def get_model():
     if 'tlob_model' not in st.session_state:
         with st.spinner("🔄 Cargando modelo TLOB..."):
             try:
+                # IMPORTANTE: Crear alias para módulos antiguos en el checkpoint
+                # El checkpoint fue entrenado con imports antiguos (config, models, etc.)
+                # Necesitamos crear aliases para que PyTorch pueda deserializar
+                import src.config
+                import src.config.config
+                import src.models
+                import src.models.tlob
+                import src.models.engine
+                import src.utils
+                import src.preprocessing
+                import src.constants
+                
+                # Registrar aliases en sys.modules
+                sys.modules['config'] = src.config
+                sys.modules['config.config'] = src.config.config
+                sys.modules['models'] = src.models
+                sys.modules['models.tlob'] = src.models.tlob
+                sys.modules['models.engine'] = src.models.engine
+                sys.modules['utils'] = src.utils
+                sys.modules['preprocessing'] = src.preprocessing
+                sys.modules['constants'] = src.constants
+                
                 # Configuración del modelo
                 model = TLOB(
                     hidden_dim=40,
@@ -145,22 +167,30 @@ def load_data(filepath):
     - Archivos .csv crudos (se normalizan automáticamente)
     """
     try:
-        # Determinar tipo de archivo
-        if isinstance(filepath, str):
+        # Determinar tipo de archivo y extensión
+        if hasattr(filepath, 'name'):  # UploadedFile de Streamlit
+            file_extension = Path(filepath.name).suffix
+            is_uploaded_file = True
+        elif isinstance(filepath, str):
             filepath = Path(filepath)
+            file_extension = filepath.suffix
+            is_uploaded_file = False
+        else:  # Path object
+            file_extension = filepath.suffix
+            is_uploaded_file = False
         
         # Cargar datos según formato
-        if filepath.suffix == '.csv':
+        if file_extension == '.csv':
             import pandas as pd
             df = pd.read_csv(filepath)
             # Si tiene timestamp, eliminarlo
             if 'timestamp' in df.columns:
                 df = df.drop(columns=['timestamp'])
             data = df.values
-        elif filepath.suffix == '.npy':
+        elif file_extension == '.npy':
             data = np.load(filepath)
         else:
-            st.error(f"❌ Formato no soportado: {filepath.suffix}")
+            st.error(f"❌ Formato no soportado: {file_extension}")
             return None, None
         
         # Verificar shape
@@ -328,11 +358,11 @@ def main():
         
         # Cargar según fuente
         if example_source == "📦 Preprocesados":
-            examples_dir = Path("data/BTC/individual_examples")
+            examples_dir = Path("src/data/BTC/individual_examples")
             examples = sorted(examples_dir.glob("example_*.npy"))
             source_key = "prep"
         else:
-            examples_dir = Path("data/BTC/raw_examples")
+            examples_dir = Path("src/data/BTC/raw_examples")
             # Buscar archivos CSV crudos, NPY crudos y NPY normalizados
             csv_examples = sorted(examples_dir.glob("raw_example_*.csv"))
             npy_raw_examples = sorted(examples_dir.glob("raw_example_*.npy"))
@@ -376,26 +406,39 @@ def main():
         
         # Upload personalizado
         st.markdown("**O sube archivo:**")
-        uploaded = st.file_uploader("Archivo .npy o .csv", type=['npy', 'csv'])
+        uploaded = st.file_uploader("Archivo .npy o .csv", type=['npy', 'csv'], key='file_uploader')
         
         if uploaded is not None:
-            data_normalized, data_raw = load_data(uploaded)
-            if data_normalized is not None and 'data' not in st.session_state:
-                st.session_state['data'] = data_normalized
-                st.session_state['data_raw'] = data_raw
-                st.session_state['filename'] = uploaded.name
-                st.session_state['source'] = "📁 Subido"
-                st.success("✅ Cargado")
+            # Verificar si es un archivo nuevo
+            current_filename = uploaded.name
+            previous_filename = st.session_state.get('filename', None)
+            
+            # Si es un archivo diferente, limpiar estado y cargar nuevo
+            if current_filename != previous_filename:
+                # Limpiar resultados anteriores
+                for key in ['prediction', 'probabilities', 'logits']:
+                    if key in st.session_state:
+                        del st.session_state[key]
+                
+                # Cargar nuevo archivo
+                data_normalized, data_raw = load_data(uploaded)
+                if data_normalized is not None:
+                    st.session_state['data'] = data_normalized
+                    st.session_state['data_raw'] = data_raw
+                    st.session_state['filename'] = current_filename
+                    st.session_state['source'] = "📁 Subido"
+                    st.success(f"✅ Archivo cargado: {current_filename}")
+                    st.rerun()  # Forzar recarga de la interfaz
     
     # Main content
     if 'data' not in st.session_state:
         st.info("👈 Selecciona un ejemplo o sube un archivo .npy")
         
         # Contar ejemplos de ambas fuentes
-        prep_examples = len(list(Path("data/BTC/individual_examples").glob("example_*.npy")))
-        raw_csv_examples = len(list(Path("data/BTC/raw_examples").glob("raw_example_*.csv")))
-        raw_npy_examples = len(list(Path("data/BTC/raw_examples").glob("raw_example_*.npy")))
-        norm_npy_examples = len(list(Path("data/BTC/raw_examples").glob("normalized_example_*.npy")))
+        prep_examples = len(list(Path("src/data/BTC/individual_examples").glob("example_*.npy")))
+        raw_csv_examples = len(list(Path("src/data/BTC/raw_examples").glob("raw_example_*.csv")))
+        raw_npy_examples = len(list(Path("src/data/BTC/raw_examples").glob("raw_example_*.npy")))
+        norm_npy_examples = len(list(Path("src/data/BTC/raw_examples").glob("normalized_example_*.npy")))
         
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("📦 Preprocesados", prep_examples)
@@ -431,7 +474,17 @@ def main():
     filename = st.session_state.get('filename', 'archivo')
     source = st.session_state.get('source', 'Desconocido')
     
-    st.success(f"✅ **Archivo:** {filename}  |  **Fuente:** {source}")
+    # Header con botón para limpiar
+    col_info, col_clear = st.columns([4, 1])
+    with col_info:
+        st.success(f"✅ **Archivo:** {filename}  |  **Fuente:** {source}")
+    with col_clear:
+        if st.button("🔄 Nuevo Ejemplo", use_container_width=True):
+            # Limpiar todo el estado
+            for key in list(st.session_state.keys()):
+                if key != 'tlob_model':  # Mantener el modelo cargado
+                    del st.session_state[key]
+            st.rerun()
     
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Datos", "🔍 Análisis", "🎯 Predicción", "📈 Resultados"])

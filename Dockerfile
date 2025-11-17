@@ -59,6 +59,9 @@ ENV STREAMLIT_SERVER_ADDRESS=0.0.0.0
 ENV STREAMLIT_SERVER_HEADLESS=true
 ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 
+# Configurar PYTHONPATH para que encuentre el módulo src
+ENV PYTHONPATH=/app:${PYTHONPATH}
+
 # Healthcheck: verificar que la app está respondiendo
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:8501/_stcore/health || exit 1
