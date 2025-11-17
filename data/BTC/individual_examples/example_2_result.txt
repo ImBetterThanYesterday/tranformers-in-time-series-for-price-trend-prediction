@@ -1,0 +1,17 @@
+RESULTADO DE INFERENCIA
+============================================================
+
+Archivo de entrada: data/BTC/individual_examples/example_2.npy
+
+Logits:
+  DOWN:       -0.0493
+  STATIONARY: -0.4201
+  UP:         0.6821
+
+Probabilidades:
+  DOWN:       26.54%
+  STATIONARY: 18.32%
+  UP:         55.15%
+
+Predicción: UP (clase 2)
+Confianza: 55.15%

@@ -23,8 +23,8 @@ openpyxl
 
 
 # Visualización
-streamlit==1.39.0
-plotly==5.24.0
+streamlit
+plotly
 tqdm
 
 

@@ -1,0 +1,23 @@
+RESUMEN DE INFERENCIAS - EJEMPLOS INDIVIDUALES
+================================================================================
+
+Total de archivos: 5
+Modelo: TLOB (BTC, horizon=10, seed=1)
+Checkpoint: val_loss=0.623_epoch=2
+
+Archivo              Predicción   Confianza  Logits [D, S, U]
+--------------------------------------------------------------------------------
+example_1.npy        ➡️ STATIONARY 92.06%    [-3.67,  3.06,  0.60]
+example_2.npy        📈 UP         55.15%    [-0.05, -0.42,  0.68]
+example_3.npy        📈 UP         93.81%    [-1.30, -0.57,  2.54]
+example_4.npy        ➡️ STATIONARY 77.45%    [-0.11,  1.37, -1.39]
+example_5.npy        📉 DOWN       86.90%    [ 1.71, -0.69, -1.11]
+
+Distribución de Predicciones:
+  📉 DOWN: 1/5 (20.0%)
+  ➡️ STATIONARY: 2/5 (40.0%)
+  📈 UP: 2/5 (40.0%)
+
+Confianza:
+  Promedio: 81.07%
+  Rango: 55.15% - 93.81%

@@ -83,17 +83,112 @@ def get_examples():
     files = list(EXAMPLES_DIR.glob("example_*.npy"))
     return [f for f in files if not f.stem.endswith("_result")]
 
+def normalize_raw_data(data):
+    """
+    Aplica Z-score normalization a datos crudos
+    
+    Args:
+        data: numpy array (128, 40) con valores sin normalizar
+    
+    Returns:
+        numpy array normalizado
+    """
+    import pandas as pd
+    
+    df = pd.DataFrame(data)
+    
+    # Columnas pares = precios, impares = volúmenes
+    mean_prices = df.iloc[:, 0::2].stack().mean()
+    std_prices = df.iloc[:, 0::2].stack().std()
+    mean_volumes = df.iloc[:, 1::2].stack().mean()
+    std_volumes = df.iloc[:, 1::2].stack().std()
+    
+    # Normalizar
+    for col in df.columns[0::2]:  # Precios
+        df[col] = (df[col] - mean_prices) / std_prices
+    
+    for col in df.columns[1::2]:  # Volúmenes
+        df[col] = (df[col] - mean_volumes) / std_volumes
+    
+    return df.values
+
+def is_data_normalized(data):
+    """
+    Detecta si los datos ya están normalizados
+    
+    Heurística: Si mean ≈ 0 y std ≈ 1, probablemente ya está normalizado
+    Si mean >> 1000, probablemente son datos crudos (precios BTC)
+    """
+    mean = np.abs(data.mean())
+    std = data.std()
+    
+    # Si el mean es muy grande, son datos crudos
+    if mean > 100:
+        return False, "raw"
+    # Si mean ≈ 0 y std ≈ 1, ya está normalizado
+    elif mean < 1 and 0.5 < std < 2:
+        return True, "normalized"
+    # No estamos seguros
+    else:
+        return None, "unknown"
+
 def load_data(filepath):
-    """Carga archivo .npy"""
+    """
+    Carga archivo .npy y normaliza automáticamente si es necesario
+    
+    Returns:
+        tuple: (data_normalized, data_raw) o (data_normalized, None) si ya está normalizado
+    
+    Soporta:
+    - Archivos .npy ya normalizados
+    - Archivos .npy crudos (se normalizan automáticamente)
+    - Archivos .csv crudos (se normalizan automáticamente)
+    """
     try:
-        data = np.load(filepath)
+        # Determinar tipo de archivo
+        if isinstance(filepath, str):
+            filepath = Path(filepath)
+        
+        # Cargar datos según formato
+        if filepath.suffix == '.csv':
+            import pandas as pd
+            df = pd.read_csv(filepath)
+            # Si tiene timestamp, eliminarlo
+            if 'timestamp' in df.columns:
+                df = df.drop(columns=['timestamp'])
+            data = df.values
+        elif filepath.suffix == '.npy':
+            data = np.load(filepath)
+        else:
+            st.error(f"❌ Formato no soportado: {filepath.suffix}")
+            return None, None
+        
+        # Verificar shape
         if data.shape != (128, 40):
             st.error(f"❌ Shape incorrecto: {data.shape}. Esperado: (128, 40)")
-            return None
-        return data
+            return None, None
+        
+        # Detectar si necesita normalización
+        is_normalized, data_type = is_data_normalized(data)
+        
+        if is_normalized == False:  # Datos crudos
+            st.info("🔄 Detectados datos crudos. Aplicando normalización Z-score...")
+            data_raw = data.copy()  # Guardar copia de datos crudos
+            data_normalized = normalize_raw_data(data)
+            st.success(f"✅ Normalización completada (mean={data_normalized.mean():.4f}, std={data_normalized.std():.4f})")
+            return data_normalized, data_raw  # Retornar AMBOS
+        elif is_normalized == True:  # Ya normalizado
+            st.success(f"✅ Datos ya normalizados (mean={data.mean():.4f}, std={data.std():.4f})")
+            return data, None  # Solo datos normalizados, sin crudos
+        else:  # No estamos seguros
+            st.warning(f"⚠️ Tipo de datos ambiguo. Usando tal cual (mean={data.mean():.4f}, std={data.std():.4f})")
+            return data, None
+        
     except Exception as e:
         st.error(f"❌ Error: {e}")
-        return None
+        import traceback
+        st.text(traceback.format_exc())
+        return None, None
 
 def run_prediction(model, data):
     """Ejecuta predicción"""
@@ -224,20 +319,37 @@ def main():
         
         st.subheader("📂 Cargar Datos")
         
-        # Ejemplos precargados
-        examples = get_examples()
+        # Selector de fuente
+        example_source = st.radio(
+            "Fuente:",
+            ["📦 Preprocesados", "📄 Crudos (CSV/NPY)"],
+            help="Preprocesados: Ya normalizados. Crudos: Se normalizan automáticamente"
+        )
+        
+        # Cargar según fuente
+        if example_source == "📦 Preprocesados":
+            examples_dir = Path("data/BTC/individual_examples")
+            examples = sorted(examples_dir.glob("example_*.npy"))
+            source_key = "prep"
+        else:
+            examples_dir = Path("data/BTC/raw_examples")
+            # Buscar archivos CSV crudos, NPY crudos y NPY normalizados
+            csv_examples = sorted(examples_dir.glob("raw_example_*.csv"))
+            npy_raw_examples = sorted(examples_dir.glob("raw_example_*.npy"))
+            npy_norm_examples = sorted(examples_dir.glob("normalized_example_*.npy"))
+            examples = csv_examples + npy_raw_examples + npy_norm_examples
+            source_key = "raw"
+        
         if examples:
-            st.markdown("**Ejemplos:**")
-            # Usar nombres en lugar de objetos Path para evitar recursión
+            st.markdown(f"**{len(examples)} ejemplos:**")
             example_names = [f.name for f in examples]
             selected_name = st.selectbox(
                 "Selecciona:",
                 example_names,
-                key="example_selector"
+                key=f"example_selector_{source_key}"
             )
             
-            if st.button("🔄 Cargar", type="primary", key="load_btn"):
-                # Encontrar el archivo correspondiente
+            if st.button("🔄 Cargar", type="primary", key=f"load_btn_{source_key}"):
                 selected_file = None
                 for f in examples:
                     if f.name == selected_name:
@@ -245,37 +357,51 @@ def main():
                         break
                 
                 if selected_file:
-                    data = load_data(selected_file)
-                    if data is not None:
-                        st.session_state['data'] = data
+                    data_normalized, data_raw = load_data(selected_file)
+                    if data_normalized is not None:
+                        st.session_state['data'] = data_normalized
+                        st.session_state['data_raw'] = data_raw  # Guardar datos crudos también
                         st.session_state['filename'] = selected_name
+                        st.session_state['source'] = example_source
                         if 'pred_result' in st.session_state:
                             del st.session_state['pred_result']
                         st.success(f"✅ {selected_name}")
                         st.rerun()
+        else:
+            st.warning(f"⚠️ No hay ejemplos en {examples_dir}")
+            if source_key == "raw":
+                st.info("💡 Ejecuta:\n`python3 create_raw_examples.py`")
         
         st.divider()
         
         # Upload personalizado
         st.markdown("**O sube archivo:**")
-        uploaded = st.file_uploader("Archivo .npy", type=['npy'])
+        uploaded = st.file_uploader("Archivo .npy o .csv", type=['npy', 'csv'])
         
         if uploaded is not None:
-            # Cargar sin rerun inmediato
-            data = load_data(uploaded)
-            if data is not None and 'data' not in st.session_state:
-                st.session_state['data'] = data
+            data_normalized, data_raw = load_data(uploaded)
+            if data_normalized is not None and 'data' not in st.session_state:
+                st.session_state['data'] = data_normalized
+                st.session_state['data_raw'] = data_raw
                 st.session_state['filename'] = uploaded.name
+                st.session_state['source'] = "📁 Subido"
                 st.success("✅ Cargado")
     
     # Main content
     if 'data' not in st.session_state:
         st.info("👈 Selecciona un ejemplo o sube un archivo .npy")
         
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Ejemplos", len(examples))
-        col2.metric("Shape", "(128, 40)")
-        col3.metric("Clases", "3")
+        # Contar ejemplos de ambas fuentes
+        prep_examples = len(list(Path("data/BTC/individual_examples").glob("example_*.npy")))
+        raw_csv_examples = len(list(Path("data/BTC/raw_examples").glob("raw_example_*.csv")))
+        raw_npy_examples = len(list(Path("data/BTC/raw_examples").glob("raw_example_*.npy")))
+        norm_npy_examples = len(list(Path("data/BTC/raw_examples").glob("normalized_example_*.npy")))
+        
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("📦 Preprocesados", prep_examples)
+        col2.metric("📄 CSV/NPY Crudos", raw_csv_examples + raw_npy_examples)
+        col3.metric("✅ Normalizados", norm_npy_examples)
+        col4.metric("Clases", "3")
         
         with st.expander("ℹ️ ¿Qué es el LOB?"):
             st.markdown("""
@@ -303,8 +429,9 @@ def main():
     # Datos cargados
     data = st.session_state['data']
     filename = st.session_state.get('filename', 'archivo')
+    source = st.session_state.get('source', 'Desconocido')
     
-    st.success(f"✅ **Archivo:** {filename}")
+    st.success(f"✅ **Archivo:** {filename}  |  **Fuente:** {source}")
     
     # Tabs
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Datos", "🔍 Análisis", "🎯 Predicción", "📈 Resultados"])
@@ -313,6 +440,51 @@ def main():
     with tab1:
         st.header("📊 Visualización")
         
+        # Mostrar comparación si hay datos crudos disponibles
+        data_raw = st.session_state.get('data_raw', None)
+        if data_raw is not None:
+            st.info("🔄 **Preprocesamiento Aplicado**: Este archivo fue cargado con datos crudos y normalizado automáticamente")
+            
+            # Comparación lado a lado
+            col_raw, col_norm = st.columns(2)
+            
+            with col_raw:
+                st.markdown("### 📥 Datos Originales (Crudos)")
+                st.caption("Valores reales del mercado BTC")
+                st.metric("Mean", f"{data_raw.mean():.2f}", help="Promedio de precios y volúmenes sin normalizar")
+                st.metric("Std", f"{data_raw.std():.2f}", help="Desviación estándar sin normalizar")
+                st.metric("Range", f"{data_raw.min():.1f} ~ {data_raw.max():.1f}", help="Rango de valores")
+                
+                # Mostrar primeras filas de datos crudos
+                with st.expander("🔢 Ver primeras 10 filas"):
+                    df_raw = pd.DataFrame(
+                        data_raw[:10, :10],  # Primeras 10 filas, primeras 10 features
+                        columns=[f"F{i}" for i in range(10)],
+                        index=[f"T{i}" for i in range(10)]
+                    )
+                    st.dataframe(df_raw.style.format("{:.2f}"), height=400)
+                    st.caption("Precios en USDT, volúmenes en BTC")
+            
+            with col_norm:
+                st.markdown("### ✅ Datos Normalizados")
+                st.caption("Z-score: mean≈0, std≈1")
+                st.metric("Mean", f"{data.mean():.6f}", help="Promedio después de normalización")
+                st.metric("Std", f"{data.std():.6f}", help="Desviación estándar después de normalización")
+                st.metric("Range", f"{data.min():.2f} ~ {data.max():.2f}", help="Rango de z-scores")
+                
+                # Mostrar primeras filas de datos normalizados
+                with st.expander("🔢 Ver primeras 10 filas"):
+                    df_norm = pd.DataFrame(
+                        data[:10, :10],  # Primeras 10 filas, primeras 10 features
+                        columns=[f"F{i}" for i in range(10)],
+                        index=[f"T{i}" for i in range(10)]
+                    )
+                    st.dataframe(df_norm.style.format("{:.6f}"), height=400)
+                    st.caption("Z-scores normalizados")
+            
+            st.divider()
+        
+        # Métricas generales
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Shape", f"{data.shape[0]} × {data.shape[1]}")
         c2.metric("Mean", f"{data.mean():.3f}")
