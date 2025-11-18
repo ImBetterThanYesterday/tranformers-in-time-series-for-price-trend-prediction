@@ -39,16 +39,8 @@
 
 **Paper:** [https://arxiv.org/pdf/2502.15757](https://arxiv.org/pdf/2502.15757)
 
-### Citación
+**BTC Source Dataset :** [([https://www.kaggle.com/datasets/siavashraz/bitcoin-perpetualbtcusdtp-limit-order-book-data/data)](https://www.kaggle.com/datasets/siavashraz/bitcoin-perpetualbtcusdtp-limit-order-book-data/data)]
 
-```bibtex
-@article{berti2025tlob,
-  title={TLOB: A Novel Transformer Model with Dual Attention for Stock Price Trend Prediction with Limit Order Book Data},
-  author={Berti, Leonardo and Kasneci, Gjergji},
-  journal={arXiv preprint arXiv:2502.15757},
-  year={2025}
-}
-```
 
 ### Abstract del Paper
 
@@ -1228,10 +1220,10 @@ Este proyecto está bajo la licencia **MIT**. Ver archivo [`LICENSE`](LICENSE) p
 
 Para preguntas o sugerencias sobre este proyecto:
 
-- 📧 Email: [tu-email@universidad.edu]
-- 💼 LinkedIn: [Tu perfil]
-- 🐙 GitHub: [github.com/tu-usuario]
-
+- 📧 Email: [gustavo.chipantiza@uao.edu.co]
+- 💼 LinkedIn: [gustavo.chipantza]
+- 🐙 GitHub: [github.com/ImBetterThanYesterday]
+- 🌐 Web: [chipantiza.com/]
 ---
 
 ## 🎯 Próximos Pasos
@@ -1241,6 +1233,18 @@ Para preguntas o sugerencias sobre este proyecto:
 - [ ] Agregar análisis de uncertainty/confianza
 - [ ] Crear dashboard de monitoreo
 - [ ] Implementar fine-tuning del modelo
+
+
+### Citación
+
+```bibtex
+@article{berti2025tlob,
+  title={TLOB: A Novel Transformer Model with Dual Attention for Stock Price Trend Prediction with Limit Order Book Data},
+  author={Berti, Leonardo and Kasneci, Gjergji},
+  journal={arXiv preprint arXiv:2502.15757},
+  year={2025}
+}
+```
 
 ---
 
