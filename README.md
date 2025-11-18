@@ -385,7 +385,7 @@ plt.ylabel('Query Position (timestep)')
 plt.title('Attention Weights - Head 0')
 ```
 
-**📖 Para más detalles:** Ver [`docs/ATENCION_QKV.md`](docs/ATENCION_QKV.md)
+**📖 Para más detalles:** Ver [`docs/MECANISMO_ATENCION_QKV.md`](docs/MECANISMO_ATENCION_QKV.md)
 
 ---
 
@@ -395,69 +395,43 @@ plt.title('Attention Weights - Head 0')
 
 ```bash
 # Sistema operativo: Linux, macOS, o Windows (con WSL2)
-# Python: 3.12+
-# Docker: 20.10+ (opcional pero recomendado)
+# Docker Desktop 20.10+ (incluye Docker Compose)
 # RAM: 4GB+ disponible
 # Disco: 10GB+ libre
 ```
 
-### Opción 1: Docker (Recomendado) 🐳
+### ⚡ Método Rápido: Docker Compose (Recomendado)
 
-#### 1. Clonar el Repositorio
+**Solo 3 comandos para ejecutar todo el proyecto:**
 
 ```bash
+# 1. Clonar repositorio
 git clone https://github.com/tu-usuario/tlob-prediction.git
 cd tlob-prediction
-```
 
-#### 2. Construir la Imagen Docker
-
-```bash
-# Construir imagen (puede tardar 5-10 minutos)
-docker build -t tlob-app:latest .
-
-# Verificar que se creó
-docker images | grep tlob
-```
-
-#### 3. Ejecutar el Contenedor
-
-```bash
-# Opción A: Docker Run
-docker run -d \
-  --name tlob-container \
-  -p 8501:8501 \
-  -v $(pwd)/src/data:/app/src/data:ro \
-  tlob-app:latest
-
-# Opción B: Docker Compose (más fácil)
+# 2. Levantar aplicación con un solo comando
 docker-compose up -d
+
+# ✅ ¡Listo! La app estará disponible en http://localhost:8501
 ```
 
-#### 4. Acceder a la Aplicación
+#### Comandos Útiles
 
 ```bash
-# Abrir navegador en:
-http://localhost:8501
-
-# Ver logs en tiempo real:
-docker logs -f tlob-container
-# o
+# Ver logs en tiempo real
 docker-compose logs -f
-```
 
-#### 5. Detener el Contenedor
+# Verificar estado
+docker-compose ps
 
-```bash
-# Con docker run:
-docker stop tlob-container
-docker rm tlob-container
-
-# Con docker-compose:
+# Detener aplicación
 docker-compose down
+
+# Reconstruir después de cambios
+docker-compose up -d --build
 ```
 
-**📖 Para más detalles:** Ver [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)
+**📖 Para más detalles:** Ver [`docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md`](docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md)
 
 ---
 
@@ -869,7 +843,7 @@ python inference/inference_pytorch.py \
   --output_dir results/
 ```
 
-**📖 Para más detalles:** Ver [`docs/INFERENCIA.md`](docs/INFERENCIA.md)
+**📖 Para más detalles:** Ver [`docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md`](docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md)
 
 ---
 
@@ -936,14 +910,12 @@ TLOB-main/
 │   ├── inference_pytorch.py           # Inferencia con PyTorch
 │   └── create_raw_examples.py         # Generador de ejemplos raw
 │
-└── docs/                              # 📚 Documentación técnica
-    ├── MECANISMO_ATENCION_QKV.md      # ⭐ Explicación detallada Q, K, V
-    ├── INFERENCIA_Y_DESPLIEGUE.md     # ⭐ Guía completa de inferencia y Docker
-    ├── INNOVACIONES_TLOB.md           # ⭐ Innovaciones vs otros modelos
-    ├── ARQUITECTURA.md                # Arquitectura técnica detallada
-    ├── DESPLIEGUE.md                  # Guía de despliegue Docker
-    ├── INFERENCIA.md                  # Proceso de inferencia
-    └── RESUMEN_EJECUTIVO.md           # Resumen ejecutivo del proyecto
+└── docs/                                            # 📚 Documentación técnica
+    ├── MECANISMO_ATENCION_QKV.md                    # ⭐ Teoría matemática Q, K, V
+    ├── INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md  # ⭐ Inferencia y despliegue completo
+    ├── INNOVACIONES_TLOB.md                         # ⭐ Dual Attention, BiN, etc.
+    ├── ARQUITECTURA_COMPLETA.md                     # ⭐ 4 pares de Transformers
+    └── RESUMEN_EJECUTIVO.md                         # Resumen del proyecto
 ```
 
 **Nota:** Los archivos marcados con ⭐ son documentos clave del proyecto.
@@ -956,12 +928,10 @@ TLOB-main/
 
 | Documento | Descripción |
 |-----------|-------------|
-| [`docs/MECANISMO_ATENCION_QKV.md`](docs/MECANISMO_ATENCION_QKV.md) | ⭐ **Explicación matemática detallada del mecanismo de atención (Q, K, V) con ejemplos paso a paso** |
-| [`docs/INFERENCIA_Y_DESPLIEGUE.md`](docs/INFERENCIA_Y_DESPLIEGUE.md) | ⭐ **Guía completa de inferencia, preprocesamiento y despliegue con Docker** |
-| [`docs/INNOVACIONES_TLOB.md`](docs/INNOVACIONES_TLOB.md) | ⭐ **Innovaciones del modelo vs. DeepLOB, LSTM y BiNCTABL** |
-| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura técnica completa del modelo TLOB |
-| [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) | Guía de despliegue con Docker y Docker Compose |
-| [`docs/INFERENCIA.md`](docs/INFERENCIA.md) | Proceso detallado de inferencia |
+| [`docs/MECANISMO_ATENCION_QKV.md`](docs/MECANISMO_ATENCION_QKV.md) | ⭐ **Teoría matemática completa del mecanismo de atención (Q, K, V) con ejemplos paso a paso** |
+| [`docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md`](docs/INFERENCIA_Y_DESPLIEGUE_DOCKER_STREAMLIT.md) | ⭐ **Guía completa de inferencia, preprocesamiento y despliegue con Docker/Streamlit** |
+| [`docs/INNOVACIONES_TLOB.md`](docs/INNOVACIONES_TLOB.md) | ⭐ **Innovaciones del modelo: Dual Attention, BiN, etiquetado adaptativo** |
+| [`docs/ARQUITECTURA_COMPLETA.md`](docs/ARQUITECTURA_COMPLETA.md) | ⭐ **Arquitectura detallada: 4 pares de Transformers explicados con dimensiones** |
 | [`docs/RESUMEN_EJECUTIVO.md`](docs/RESUMEN_EJECUTIVO.md) | Resumen ejecutivo del proyecto |
 
 ### Código Comentado
