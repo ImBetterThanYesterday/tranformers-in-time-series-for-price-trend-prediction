@@ -494,3 +494,4 @@ LOB Data (128 timesteps × 40 features)
 **Última actualización**: Noviembre 2025  
 **Autor**: Proyecto Final - Análisis de Series Temporales con Transformers
 
+

@@ -27,21 +27,32 @@
 
 ## 📄 Artículo Base
 
-**Título:** *"Transformers for Limit Order Books"*
+**Título:** *"TLOB: A Novel Transformer Model with Dual Attention for Stock Price Trend Prediction with Limit Order Book Data"*
 
 **Autores:** 
 - Leonardo Berti (Sapienza University of Rome)
 - Gjergji Kasneci (Technical University of Munich)
 
-**Publicación:** arXiv:2110.00551 [cs.LG], 2021
+**Publicación:** arXiv:2502.15757, 2025
 
-**Repositorio Original:** [https://github.com/lorenzoletizia/TLOB](https://github.com/lorenzoletizia/TLOB)
+**Repositorio Original:** [https://github.com/LeonardoBerti00/TLOB](https://github.com/LeonardoBerti00/TLOB)
 
-**Paper:** [https://arxiv.org/abs/2110.00551](https://arxiv.org/abs/2110.00551)
+**Paper:** [https://arxiv.org/pdf/2502.15757](https://arxiv.org/pdf/2502.15757)
+
+### Citación
+
+```bibtex
+@article{berti2025tlob,
+  title={TLOB: A Novel Transformer Model with Dual Attention for Stock Price Trend Prediction with Limit Order Book Data},
+  author={Berti, Leonardo and Kasneci, Gjergji},
+  journal={arXiv preprint arXiv:2502.15757},
+  year={2025}
+}
+```
 
 ### Abstract del Paper
 
-El modelo TLOB introduce una arquitectura Transformer especializada para la predicción de movimientos de precios utilizando datos del Limit Order Book (LOB). A diferencia de modelos anteriores basados en CNN y LSTM, TLOB utiliza un mecanismo de **atención dual** que captura relaciones temporales y espaciales en los datos del orderbook de manera más efectiva.
+El modelo TLOB introduce una arquitectura Transformer especializada para la predicción de tendencias de precios utilizando datos del Limit Order Book (LOB). A diferencia de modelos anteriores basados en CNN y LSTM, TLOB utiliza un mecanismo de **atención dual** (spatial y temporal) que captura relaciones entre features y evolución temporal de manera más efectiva. El modelo incorpora **BiN (Batch Independent Normalization)** para funcionar eficientemente con batch_size=1 en producción, y un **nuevo método de etiquetado sin sesgo de horizonte** que mejora la consistencia entre diferentes horizontes de predicción.
 
 ---
 
@@ -115,7 +126,7 @@ Comparado con modelos state-of-the-art:
 │  Features: [ASK_P1, ASK_V1, BID_P1, BID_V1, ... ×10]    │
 │  Timesteps: 128 snapshots × 250ms = 32 segundos          │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+  ↓
 ┌─────────────────────────────────────────────────────────┐
 │  STEP 1: BiN Normalization                               │
 │  ────────────────────────                                │
@@ -123,7 +134,7 @@ Comparado con modelos state-of-the-art:
 │  • Combina batch + instance normalization                │
 │  • Output: (32, 128, 40)                                 │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+               ↓
 ┌─────────────────────────────────────────────────────────┐
 │  STEP 2: Linear Embedding                                │
 │  ────────────────────────                                │
@@ -131,7 +142,7 @@ Comparado con modelos state-of-the-art:
 │  • 40 features → hidden_dim (256)                        │
 │  • Output: (32, 128, 256)                                │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+               ↓
 ┌─────────────────────────────────────────────────────────┐
 │  STEP 3: Positional Encoding                             │
 │  ────────────────────────                                │
@@ -139,7 +150,7 @@ Comparado con modelos state-of-the-art:
 │  • Sinusoidal o aprendible                               │
 │  • Output: (32, 128, 256)                                │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+               ↓
               ┌──────────┴──────────┐
               │                     │
               ↓                     ↓
@@ -173,14 +184,14 @@ Comparado con modelos state-of-the-art:
 └──────────┬───────────┘  └──────────┬───────────┘
            │                         │
            └──────────┬──────────────┘
-                      ↓
+                ↓
 ┌─────────────────────────────────────────────────────────┐
 │  STEP 4: Concatenate & Flatten                           │
 │  ────────────────────────────────                        │
 │  • Combina ambas ramas                                   │
 │  • Flatten: (32, 32, 64) + (32, 32, 64) → (32, 4096)    │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+                ↓
 ┌─────────────────────────────────────────────────────────┐
 │  STEP 5: Final MLP                                       │
 │  ─────────────────                                       │
@@ -189,7 +200,7 @@ Comparado con modelos state-of-the-art:
 │  • Linear(256 → 3)                                      │
 │  • Softmax                                               │
 └────────────────────────┬─────────────────────────────────┘
-                         ↓
+                ↓
 ┌─────────────────────────────────────────────────────────┐
 │  OUTPUT: Predicción de Tendencia                         │
 │  ──────────────────────────────────                      │
@@ -774,13 +785,13 @@ print(f"Input shape: {input_tensor.shape}")
 with torch.no_grad():
     # Forward pass
     output, attention_weights = model(input_tensor, store_att=True)
-    
+
     # output shape: (1, 3)
     # attention_weights: dict con pesos de atención de cada capa
 
 # Aplicar softmax para obtener probabilidades
 probabilities = torch.softmax(output, dim=1)
-
+    
 # Obtener predicción (clase con mayor probabilidad)
 predicted_class = torch.argmax(probabilities, dim=1)
 
@@ -822,7 +833,7 @@ import plotly.graph_objects as go
 # Mostrar resultados
 st.success(f"✅ Predicción: **{prediction}**")
 st.info(f"📊 Confianza: **{confidence:.1f}%**")
-
+    
 # Gráfico de barras con probabilidades
 fig = go.Figure(data=[
     go.Bar(
@@ -836,7 +847,7 @@ fig.update_layout(
     yaxis_title="Probabilidad (%)",
     yaxis_range=[0, 100]
 )
-st.plotly_chart(fig)
+    st.plotly_chart(fig)
 ```
 
 ### Script de Inferencia Independiente
@@ -866,65 +877,76 @@ python inference/inference_pytorch.py \
 
 ```
 TLOB-main/
-├── README.md                          # 📖 Este archivo
+├── README.md                          # 📖 Este archivo - Guía completa
 ├── LICENSE                            # Licencia MIT
 ├── .gitignore                         # Archivos ignorados por Git
 │
 ├── app.py                             # 🎨 Aplicación Streamlit (Principal)
-├── Dockerfile                         # 🐳 Imagen Docker
-├── docker-compose.yml                 # 🐳 Orquestación Docker
-├── requirements.txt                   # 📦 Dependencias Python
+├── Dockerfile                         # 🐳 Configuración de imagen Docker
+├── docker-compose.yml                 # 🐳 Orquestación multi-contenedor
+├── requirements.txt                   # 📦 Dependencias Python con versiones
 │
 ├── .devcontainer/                     # 🛠️ Dev Container para VSCode
-│   ├── devcontainer.json
-│   └── Dockerfile
+│   ├── devcontainer.json              # Configuración del contenedor
+│   └── Dockerfile                     # Dockerfile para desarrollo
 │
 ├── src/                               # 📂 Código fuente principal
+│   ├── constants.py                   # 🔧 Constantes del proyecto
+│   ├── main.py                        # 🚀 Script principal de entrenamiento
+│   ├── run.py                         # 🏃 Runner de experimentos
+│   │
+│   ├── config/                        # ⚙️ Configuración
+│   │   └── config.py                  # Configuración con Hydra
+│   │
 │   ├── data/                          # 📊 Datos y checkpoints
 │   │   ├── checkpoints/               # ⭐ Pesos preentrenados
-│   │   │   ├── TLOB/
-│   │   │   ├── DEEPLOB/
-│   │   │   ├── MLPLOB/
-│   │   │   └── BINCTABL/
+│   │   │   ├── TLOB/                  # Modelos TLOB (horizonte 10/20/50/100)
+│   │   │   │   ├── BTC_seq_size_128_horizon_10_seed_42/
+│   │   │   │   │   ├── pt/            # Checkpoints PyTorch (.pt)
+│   │   │   │   │   └── onnx/          # Modelos ONNX (.onnx)
+│   │   │   │   └── ...
+│   │   │   ├── DEEPLOB/               # Modelos DeepLOB
+│   │   │   ├── MLPLOB/                # Modelos MLPLOB
+│   │   │   └── BINCTABL/              # Modelos BiNCTABL
+│   │   │
 │   │   └── BTC/                       # Datos de Bitcoin
-│   │       ├── original_source/       # CSV original
-│   │       ├── raw_examples/          # Ejemplos sin procesar
-│   │       └── csv_examples/          # Ejemplos desde CSV
+│   │       ├── original_source/       # CSV original de Binance
+│   │       ├── individual_examples/   # Ejemplos preprocesados (.npy)
+│   │       └── raw_examples/          # Ejemplos sin procesar (.csv, .npy)
 │   │
 │   ├── models/                        # 🧠 Arquitecturas de modelos
-│   │   ├── tlob.py                    # ⭐ Modelo TLOB principal
-│   │   ├── deeplob.py
-│   │   ├── mlplob.py
-│   │   ├── binctabl.py
-│   │   ├── bin.py                     # BiN Normalization
-│   │   └── engine.py                  # Training engine
+│   │   ├── tlob.py                    # ⭐ Modelo TLOB con Dual Attention
+│   │   ├── deeplob.py                 # Modelo DeepLOB (baseline)
+│   │   ├── mlplob.py                  # Modelo MLPLOB
+│   │   ├── binctabl.py                # Modelo BiNCTABL
+│   │   ├── bin.py                     # BiN (Batch Independent Normalization)
+│   │   └── engine.py                  # Engine de entrenamiento (Lightning)
 │   │
 │   ├── preprocessing/                 # 🔄 Preprocesamiento de datos
-│   │   ├── btc.py                     # Preprocesamiento BTC
-│   │   ├── fi_2010.py                 # Preprocesamiento FI-2010
-│   │   ├── dataset.py                 # PyTorch Dataset
+│   │   ├── btc.py                     # Procesamiento BTC/Binance
+│   │   ├── fi_2010.py                 # Procesamiento FI-2010
+│   │   ├── dataset.py                 # PyTorch Dataset personalizado
 │   │   └── lobster.py                 # Formato LOBSTER
 │   │
 │   └── utils/                         # 🛠️ Utilidades
-│       ├── utils_data.py              # Funciones de datos
-│       └── utils_model.py             # Funciones de modelo
+│       ├── utils_data.py              # Funciones de datos y etiquetado
+│       └── utils_model.py             # Funciones auxiliares de modelos
 │
 ├── inference/                         # 🔮 Scripts de inferencia
-│   ├── inference_pytorch.py           # Inferencia PyTorch
-│   ├── create_raw_examples.py         # Crear ejemplos raw
-│   └── create_examples_from_csv.py    # Crear ejemplos desde CSV
+│   ├── inference_pytorch.py           # Inferencia con PyTorch
+│   └── create_raw_examples.py         # Generador de ejemplos raw
 │
-├── config/                            # ⚙️ Configuración
-│   ├── config.py                      # Configuración general
-│   └── constants.py                   # Constantes del proyecto
-│
-└── docs/                              # 📚 Documentación
-    ├── ARQUITECTURA.md                # Arquitectura detallada
-    ├── ATENCION_QKV.md                # ⭐ Explicación Q, K, V
-    ├── INFERENCIA.md                  # Guía de inferencia
+└── docs/                              # 📚 Documentación técnica
+    ├── MECANISMO_ATENCION_QKV.md      # ⭐ Explicación detallada Q, K, V
+    ├── INFERENCIA_Y_DESPLIEGUE.md     # ⭐ Guía completa de inferencia y Docker
+    ├── INNOVACIONES_TLOB.md           # ⭐ Innovaciones vs otros modelos
+    ├── ARQUITECTURA.md                # Arquitectura técnica detallada
     ├── DESPLIEGUE.md                  # Guía de despliegue Docker
-    └── RESUMEN_EJECUTIVO.md           # Resumen ejecutivo
+    ├── INFERENCIA.md                  # Proceso de inferencia
+    └── RESUMEN_EJECUTIVO.md           # Resumen ejecutivo del proyecto
 ```
+
+**Nota:** Los archivos marcados con ⭐ son documentos clave del proyecto.
 
 ---
 
@@ -934,9 +956,11 @@ TLOB-main/
 
 | Documento | Descripción |
 |-----------|-------------|
-| [`docs/ATENCION_QKV.md`](docs/ATENCION_QKV.md) | ⭐ **Explicación detallada del mecanismo de atención (Q, K, V)** |
-| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura completa del modelo TLOB |
-| [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) | Guía completa de despliegue con Docker |
+| [`docs/MECANISMO_ATENCION_QKV.md`](docs/MECANISMO_ATENCION_QKV.md) | ⭐ **Explicación matemática detallada del mecanismo de atención (Q, K, V) con ejemplos paso a paso** |
+| [`docs/INFERENCIA_Y_DESPLIEGUE.md`](docs/INFERENCIA_Y_DESPLIEGUE.md) | ⭐ **Guía completa de inferencia, preprocesamiento y despliegue con Docker** |
+| [`docs/INNOVACIONES_TLOB.md`](docs/INNOVACIONES_TLOB.md) | ⭐ **Innovaciones del modelo vs. DeepLOB, LSTM y BiNCTABL** |
+| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura técnica completa del modelo TLOB |
+| [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md) | Guía de despliegue con Docker y Docker Compose |
 | [`docs/INFERENCIA.md`](docs/INFERENCIA.md) | Proceso detallado de inferencia |
 | [`docs/RESUMEN_EJECUTIVO.md`](docs/RESUMEN_EJECUTIVO.md) | Resumen ejecutivo del proyecto |
 
@@ -1060,11 +1084,11 @@ Este proyecto es parte de un trabajo académico. Para sugerencias o mejoras:
 ### Paper Original
 
 ```bibtex
-@article{berti2021tlob,
-  title={Transformers for Limit Order Books},
+@article{berti2025tlob,
+  title={TLOB: A Novel Transformer Model with Dual Attention for Stock Price Trend Prediction with Limit Order Book Data},
   author={Berti, Leonardo and Kasneci, Gjergji},
-  journal={arXiv preprint arXiv:2110.00551},
-  year={2021}
+  journal={arXiv preprint arXiv:2502.15757},
+  year={2025}
 }
 ```
 
