@@ -979,32 +979,153 @@ Todo el código del proyecto está **extensamente comentado** explicando:
 
 ## 🔬 Resultados y Desempeño
 
-### Métricas del Modelo
+Los resultados presentados a continuación son los reportados en el paper original (Berti & Kasneci, 2025) y demuestran el desempeño superior de TLOB y MLPLOB frente a modelos del estado del arte.
 
-**Dataset: Bitcoin (BTCUSDT) - Binance Perpetual**
+### Resultados en FI-2010 Benchmark
 
-| Métrica | TLOB | DeepLOB | MLPLOB | BINCTABL |
-|---------|------|---------|--------|----------|
-| **Accuracy** | 71.2% | 69.8% | 70.1% | 68.5% |
-| **F1-Score** | 0.708 | 0.695 | 0.698 | 0.682 |
-| **Precision** | 0.715 | 0.702 | 0.705 | 0.688 |
-| **Recall** | 0.712 | 0.698 | 0.701 | 0.685 |
+**F1-Score (%) en cuatro horizontes de predicción:**
 
-**Dataset: FI-2010 (Finnish Stock Market)**
+| Modelo | h = 10 | h = 20 | h = 50 | h = 100 |
+|--------|--------|--------|--------|---------|
+| SVM | 35.9 | 43.2 | 49.4 | 51.2 |
+| Random Forest | 48.7 | 46.3 | 51.2 | 53.9 |
+| XGBoost | 62.4 | 59.6 | 65.3 | 67.6 |
+| MLP | 48.2 | 44.0 | 49.0 | 51.6 |
+| LSTM [39] | 66.5 | 58.8 | 66.9 | 59.4 |
+| CNN [38] | 49.3 | 46.1 | 65.8 | 67.2 |
+| CTABL [36] | 69.5 | 62.4 | 71.6 | 73.9 |
+| DAIN-MLP [30] | 53.9 | 46.7 | 61.2 | 62.8 |
+| CNNLSTM [40] | 63.5 | 49.1 | 69.2 | 71.0 |
+| AXIALLOB [23] | 73.2 | 63.4 | 78.3 | 79.2 |
+| DLA [18] | 79.4 | 69.3 | 87.1 | 52.2 |
+| DeepLOB [45] | 71.1 | 62.4 | 75.4 | 77.6 |
+| BiNCTABL [37] | 81.1 | 71.5 | 87.7 | 92.1 |
+| **MLPLOB** | **81.64** | **84.88** | **91.39** | 92.62 |
+| **TLOB** | 81.55 | 82.68 | 90.03 | **92.81** |
 
-| Métrica | TLOB | DeepLOB | Trans-LOB | BINCTABL |
-|---------|------|---------|-----------|----------|
-| **Accuracy** | 76.8% | 73.1% | 74.2% | 72.9% |
-| **F1-Score** | 0.765 | 0.728 | 0.739 | 0.726 |
+**Análisis:**
+- TLOB y MLPLOB superan a todos los baselines con una mejora promedio de **+3.7% en F1-score**
+- MLPLOB es ligeramente superior en horizontes cortos (h=10, 20)
+- TLOB domina en horizontes largos (h=50, 100), demostrando su capacidad para capturar dependencias temporales de largo alcance
 
-### Tiempo de Inferencia
+### Resultados en Tesla (TSLA) - NASDAQ
 
-| Dispositivo | Batch Size | Tiempo Promedio |
-|-------------|------------|-----------------|
-| CPU (Intel i7) | 1 | ~50ms |
-| CPU (Intel i7) | 32 | ~800ms |
-| GPU (RTX 3080) | 1 | ~15ms |
-| GPU (RTX 3080) | 32 | ~150ms |
+**F1-Score (%) en cuatro horizontes de predicción:**
+
+| Modelo | h = 10 | h = 20 | h = 50 | h = 100 |
+|--------|--------|--------|--------|---------|
+| DeepLOB | 36.25 | 36.58 | 35.29 | 34.43 |
+| BiNCTABL | 58.69 | 48.83 | 42.23 | 38.77 |
+| MLPLOB | **60.72** | **50.25** | 38.97 | 32.95 |
+| **TLOB** | 60.50 | 49.74 | **43.48** | **39.84** |
+
+**Análisis:**
+- Mejora promedio de **+1.3% en F1-score** sobre baselines
+- Tesla presenta mayor volatilidad y complejidad que FI-2010
+- TLOB muestra ventaja significativa en horizontes largos (h=50, 100)
+- Performance inferior a FI-2010 refleja mayor eficiencia del mercado NASDAQ
+
+### Resultados en Intel (INTC) - NASDAQ
+
+**F1-Score (%) en cuatro horizontes de predicción:**
+
+| Modelo | h = 10 | h = 20 | h = 50 | h = 100 |
+|--------|--------|--------|--------|---------|
+| DeepLOB | 68.13 | 63.70 | 40.3 | 30.1 |
+| BiNCTABL | 72.65 | 66.57 | 53.99 | 41.08 |
+| **MLPLOB** | **81.15** | **73.25** | 55.74 | 43.18 |
+| **TLOB** | 80.15 | 72.75 | **62.07** | **50.14** |
+
+**Análisis:**
+- Mejora promedio de **+7.7% en F1-score** sobre baselines
+- Intel como "small-tick stock" presenta características diferentes a Tesla
+- TLOB supera significativamente a todos los modelos en horizontes largos
+- Diferencia de ~7% entre MLPLOB y TLOB en h=50 y h=100 demuestra importancia de dual attention
+
+### Resultados en Bitcoin (BTC)
+
+**F1-Score (%) en cuatro horizontes de predicción:**
+
+| Modelo | h = 10 | h = 20 | h = 50 | h = 100 |
+|--------|--------|--------|--------|---------|
+| DeepLOB | 68.07 | 57.87 | 45.13 | 37.43 |
+| BiNCTABL | 73.4 | 61.34 | 47.05 | 40.59 |
+| MLPLOB | 74.6 | 61.02 | 42.74 | 36.97 |
+| **TLOB** | **74.7** | **61.74** | **48.54** | **41.49** |
+
+**Análisis:**
+- Mejora promedio de **+1.1% en F1-score** sobre baselines
+- Dataset más reciente (2023) con alta volatilidad
+- TLOB supera consistentemente a MLPLOB en **todos los horizontes**
+- Diferencia más notable en horizontes largos (~5% en h=50, h=100)
+
+### Análisis Temporal: Eficiencia de Mercado Creciente
+
+**Intel 2012 vs 2015 (h = 50):**
+
+| Periodo | F1-Score (%) |
+|---------|--------------|
+| INTC 2012 | **66.87** |
+| INTC 2015 | 60.19 |
+| **Decline** | **-6.68** |
+
+**Conclusión:** Confirmación empírica de que los mercados se vuelven más eficientes con el tiempo, dificultando la predicción. Los patrones predictivos se erosionan a medida que son descubiertos y explotados por traders.
+
+### Threshold Basado en Spread (Tesla)
+
+**F1-Score (%) con θ = promedio del spread:**
+
+| Horizonte | F1-Score (%) |
+|-----------|--------------|
+| h = 50 | 41.39 |
+| h = 100 | 36.48 |
+| h = 200 | 30.82 |
+
+**Conclusión:** Definir el threshold basado en costos de transacción (spread) en lugar de balance de clases deteriora significativamente el performance, evidenciando el **gap crítico entre métricas académicas y profitabilidad práctica**.
+
+### Ablation Study: Importancia de Dual Attention
+
+**F1-Score (%) en FI-2010:**
+
+| Modelo | h = 10 | h = 20 | h = 50 | h = 100 |
+|--------|--------|--------|--------|---------|
+| TLOB w/o Spatial Attention | 79.59 | 78.96 | 87.51 | 91.40 |
+| TLOB w/o Temporal Attention | 80.27 | 79.20 | 87.72 | 91.42 |
+| **TLOB Completo** | **81.55** | **82.68** | **90.03** | **92.81** |
+
+**Conclusión:** El modelo completo con **dual attention (spatial + temporal)** supera consistentemente a las versiones ablated, demostrando que ambos mecanismos capturan información complementaria esencial.
+
+### Tiempo de Inferencia y Parámetros
+
+**Comparación de modelos (batch_size=1):**
+
+| Modelo | Parámetros | Tiempo (ms) |
+|--------|------------|-------------|
+| MLP | 10⁶ | 0.08 |
+| LSTM [39] | 1.6 × 10⁴ | 0.21 |
+| CNN [38] | 3.5 × 10⁴ | 0.36 |
+| CTABL [36] | 1.1 × 10⁴ | 0.48 |
+| DAIN-MLP [30] | 5.3 × 10⁴ | 0.50 |
+| CNNLSTM [40] | 2.8 × 10⁵ | 0.49 |
+| AXIALLOB [23] | 2 × 10⁴ | 1.91 |
+| DLA [18] | 1.2 × 10⁵ | 0.23 |
+| DeepLOB [45] | 1.4 × 10⁵ | 1.31 |
+| BiNCTABL [37] | 1.1 × 10⁴ | 0.71 |
+| **MLPLOB** | **6.3 × 10⁷** | **4.79** |
+| **TLOB** | **1 × 10⁷** | **2.24** |
+
+**Análisis:**
+- TLOB tiene más parámetros que los baselines pero **mantiene tiempo de inferencia competitivo (2.24ms)**
+- Velocidad adecuada para aplicaciones de **high-frequency trading**
+- Trade-off favorable: Mayor capacidad del modelo por costo computacional moderado
+
+### Observaciones Clave
+
+1. **Horizontes Cortos (h=10, 20):** MLPLOB es suficiente y ligeramente superior
+2. **Horizontes Largos (h=50, 100):** TLOB domina gracias a mecanismo de atención
+3. **Eficiencia de Mercado:** FI-2010 (2010) > BTC (2023) > NASDAQ (2015)
+4. **Volatilidad:** Tesla (alta) más difícil de predecir que Intel (baja)
+5. **Transaction Costs:** Críticos para profitabilidad real, no capturados por F1-score
 
 ---
 
